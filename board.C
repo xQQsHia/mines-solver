@@ -8,7 +8,7 @@
 # include <stack>
 # include <set>
 
-# include <../board.H>
+# include <board.H>
 
 using namespace std;
 
@@ -69,7 +69,7 @@ Pos extract_random_pos(set<Pos> & s, mt19937 & rng)
 
   auto it = s.begin();
 
-  while (r > 0)
+  while (r-- > 0)
     ++it;
 
   Pos ret = *it;
@@ -167,33 +167,45 @@ bool Board::flag(size_t i, size_t j)
   return true;
 }
 
-void Board::discover(size_t i, size_t j)
+void Board::discover(size_t _i, size_t _j)
 {
-  if (i >= rows() or j >= cols())
-    return;
+  stack<Pos> st;
+  st.push(make_pair(_i, _j));
 
-  StatusValue & s = matrix[i][j].first;  
-  
-  if (s == StatusValue::UNCOVERED or s == StatusValue::FLAG)
-    return;
+  while (not st.empty())
+    {
+      Pos p = st.top();
+      st.pop();
 
-  s = StatusValue::UNCOVERED;
-  ++num_uncovered_boxes;
+      size_t i = p.first;
+      size_t j = p.second;
+      
+      if (i >= rows() or j >= cols())
+	continue;
+
+      StatusValue & s = matrix[i][j].first;  
   
-  if (get<1>(matrix[i][j]))
-    return;
-  
-  if (count_mines_around(i, j) > 0)
-    return;
-  
-  discover(i - 1, j - 1);
-  discover(i - 1, j);
-  discover(i - 1, j + 1);
-  discover(i, j + 1);
-  discover(i + 1, j + 1);
-  discover(i + 1, j);
-  discover(i + 1, j - 1);
-  discover(i, j - 1);
+      if (s == StatusValue::UNCOVERED or s == StatusValue::FLAG)
+	continue;
+      
+      s = StatusValue::UNCOVERED;
+      ++num_uncovered_boxes;
+      
+      if (get<1>(matrix[i][j]))
+	return;
+      
+      if (count_mines_around(i, j) > 0)
+	continue;
+      
+      st.push(make_pair(i - 1, j - 1));
+      st.push(make_pair(i - 1, j));
+      st.push(make_pair(i - 1, j + 1));
+      st.push(make_pair(i, j + 1));
+      st.push(make_pair(i + 1, j + 1));
+      st.push(make_pair(i + 1, j));
+      st.push(make_pair(i + 1, j - 1));
+      st.push(make_pair(i, j - 1));
+    }
 }
 
  
